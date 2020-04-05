@@ -30,7 +30,7 @@ namespace NuGetPacksCLI.Commands
         }
 
         [Command(Name = "vers",
-            Usage = "vers -n | --name <packName>",
+            Usage = "packs vers -n | --name <packName>",
             Description = "List available versions for target package")]
         public async Task ListAllPackVersions([Option(LongName = "name", ShortName = "n", Description = "Package name")] string packName)
         {
@@ -53,7 +53,7 @@ namespace NuGetPacksCLI.Commands
         }
 
         [Command(Name = "depends",
-            Usage = "depends -n | --name <packName>",
+            Usage = "packs depends -n | --name <packName>",
             Description = "List add dependencies of package")]
         public async Task GetPackageMeta([Option(LongName = "name", ShortName = "n", Description = "Package name")] string packName)
         {
@@ -73,7 +73,7 @@ namespace NuGetPacksCLI.Commands
         }
 
         [Command(Name = "find",
-            Usage = "find -p | --part <PartOfName>",
+            Usage = "packs find -p | --part <PartOfName>",
             Description = "Find packages which contains this part of name")]
         public async Task FindPackagesByPartOfName(
             [Option(LongName = "part", ShortName = "p", Description = "Part of name")] string partOnName)
@@ -97,7 +97,7 @@ namespace NuGetPacksCLI.Commands
         }
 
         [Command(Name = "save",
-            Usage = "save -n | --name <packName> (optional) -v | --version <packVersion>",
+            Usage = "packs save -n | --name <packName> (optional) -v | --version <packVersion>",
             Description = "Download package and all it dependencies")]
         public async Task DownloadPackAndAllDependencies(
             [Option(LongName = "name", ShortName = "n", Description = "Pack name")]
@@ -123,7 +123,7 @@ namespace NuGetPacksCLI.Commands
         }
 
         [Command(Name = "savelist",
-            Usage = "savelist <list package names>",
+            Usage = "packs savelist <list package names>",
             Description = "Download add dependencies for all packages in selected list")]
         public async Task DownloadPacksAndDependenciesFromList(List<string> packageNames)
         {
