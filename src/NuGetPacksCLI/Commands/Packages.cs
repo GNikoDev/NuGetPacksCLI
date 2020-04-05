@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using CommandDotNet;
 using Microsoft.Extensions.Options;
@@ -26,16 +30,22 @@ namespace NuGetPacksCLI.Commands
         }
 
         [Command(Name = "vers",
-            Usage = "vers -n | --name <packName>",
+            Usage = "packs vers -n | --name <packName>",
             Description = "List available versions for target package")]
         public async Task ListAllPackVersions([Option(LongName = "name", ShortName = "n", Description = "Package name")] string packName)
         {
+            var availableSources = _opt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
+            if (!availableSources.Any())
+            {
+                Console.WriteLine("Source list is empty");
+                return;
+            }
+
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = new CancellationToken();
 
             Console.WriteLine($"Start of search \"{packName}\" package all versions...\n");
-            
-            foreach (var source in _opt.Value.NugetSources.Where(it => it.IsEnabled))
+            foreach (var source in availableSources)
             {
                 var manager = new PackageManager(logger, cancellationToken);
                 manager.FindAllPackageVersionsAsync(packName, source).Wait();
@@ -43,31 +53,43 @@ namespace NuGetPacksCLI.Commands
         }
 
         [Command(Name = "depends",
-            Usage = "depends -n | --name <packName>",
+            Usage = "packs depends -n | --name <packName>",
             Description = "List add dependencies of package")]
         public async Task GetPackageMeta([Option(LongName = "name", ShortName = "n", Description = "Package name")] string packName)
         {
+            var availableSources = _opt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
+            if (!availableSources.Any())
+            {
+                Console.WriteLine("Source list is empty");
+                return;
+            }
+
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = new CancellationToken();
 
             Console.WriteLine($"Start of search \"{packName}\" package dependencies...\n");
-
             var manager = new PackageManager(logger, cancellationToken);
-            manager.FindAllPackageDependencies(packName, _opt.Value.NugetSources.Where(it => it.IsEnabled).ToList()).Wait();
+            manager.FindAllPackageDependencies(packName, availableSources).Wait();
         }
 
         [Command(Name = "find",
-            Usage = "find -p | --part <PartOfName>",
+            Usage = "packs find -p | --part <PartOfName>",
             Description = "Find packages which contains this part of name")]
         public async Task FindPackagesByPartOfName(
             [Option(LongName = "part", ShortName = "p", Description = "Part of name")] string partOnName)
         {
+            var availableSources = _opt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
+            if (!availableSources.Any())
+            {
+                Console.WriteLine("Source list is empty");
+                return;
+            }
+
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = new CancellationToken();
 
             Console.WriteLine($"Start of search packages by part \"{partOnName}\"...");
-
-            foreach (var source in _opt.Value.NugetSources.Where(it=>it.IsEnabled))
+            foreach (var source in availableSources)
             {
                 var manager = new PackageManager(logger, cancellationToken);
                 manager.FindPackagesByPartOfName(partOnName, source).Wait();
@@ -75,7 +97,7 @@ namespace NuGetPacksCLI.Commands
         }
 
         [Command(Name = "save",
-            Usage = "save -n | --name <packName> (optional) -v | --version <packVersion>",
+            Usage = "packs save -n | --name <packName> (optional) -v | --version <packVersion>",
             Description = "Download package and all it dependencies")]
         public async Task DownloadPackAndAllDependencies(
             [Option(LongName = "name", ShortName = "n", Description = "Pack name")]
@@ -83,14 +105,48 @@ namespace NuGetPacksCLI.Commands
             [Option(LongName = "version", ShortName = "v", Description = "Package version")]
             string packVersion = null)
         {
+            var availableSources = _opt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
+            if (!availableSources.Any())
+            {
+                Console.WriteLine("Source list is empty");
+                return;
+            }
+
             ILogger logger = NullLogger.Instance;
             CancellationToken cancellationToken = new CancellationToken();
 
             Console.WriteLine($"Start downloading \"{packName}\" package dependencies...\n");
+            if (!Directory.Exists(_opt.Value.DownloadFolder))
+                Directory.CreateDirectory(_opt.Value.DownloadFolder);
+            var manager = new PackageManager(logger, cancellationToken, _opt.Value.DownloadFolder);
+            manager.DownloadPackAndAllDependencies(packName, availableSources, packVersion).Wait();
+        }
 
-            var manager = new PackageManager(logger, cancellationToken);
+        [Command(Name = "savelist",
+            Usage = "packs savelist <list package names>",
+            Description = "Download add dependencies for all packages in selected list")]
+        public async Task DownloadPacksAndDependenciesFromList(List<string> packageNames)
+        {
             var availableSources = _opt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
-            manager.DownloadPackAndAllDependencies(packName, availableSources, _opt.Value.DownloadFolder).Wait();
+            if (!availableSources.Any())
+            {
+                Console.WriteLine("Source list is empty");
+                return;
+            }
+
+            ILogger logger = NullLogger.Instance;
+            CancellationToken cancellationToken = new CancellationToken();
+
+            if(!packageNames.Any())
+                Console.WriteLine("Package list is empty");
+            foreach (var packageName in packageNames)
+            {
+                Console.WriteLine($"Start downloading \"{packageName}\" package dependencies...\n");
+                if (!Directory.Exists(_opt.Value.DownloadFolder))
+                    Directory.CreateDirectory(_opt.Value.DownloadFolder);
+                var manager = new PackageManager(logger, cancellationToken, _opt.Value.DownloadFolder);
+                manager.DownloadPackAndAllDependencies(packageName, availableSources).Wait();
+            }
         }
     }
 }

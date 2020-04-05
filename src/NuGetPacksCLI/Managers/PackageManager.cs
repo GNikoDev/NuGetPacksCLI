@@ -78,11 +78,10 @@ namespace NuGetPacksCLI.Managers
             }
         }
 
-        public async Task DownloadPackAndAllDependencies(string packName, List<NugetSource> sources,
-            string downloadedFolder, string packVer = null)
+        public async Task DownloadPackAndAllDependencies(string packName, List<NugetSource> sources, string packVer = null)
         {
             var cache = new SourceCacheContext();
-
+            FindAndDownload(packName, sources, cache, packVer).Wait();
         }
 
         public async Task FindAndDownload(string packageName, List<NugetSource> sources, SourceCacheContext cache, string packageVersion = null)
@@ -92,64 +91,57 @@ namespace NuGetPacksCLI.Managers
                 var packs = await FindPackMetaInSource(packageName, source, cache);
                 if (!packs.Any())
                 {
-                    Console.WriteLine($"Package {packageName} not found in {source.Name}");
+                    Console.WriteLine($"{_redLine}Package {packageName} not found in {source.Name}");
                     continue;
                 }
 
                 var targetPack = packageVersion == null
-                    ? packs.OrderByDescending(x => x.Identity.Version.OriginalVersion).FirstOrDefault()
+                    ? packs.FirstOrDefault()
                     : packs.FirstOrDefault(x => x.Identity.Version.OriginalVersion == packageVersion);
                 if (targetPack == null)
                 {
-                    Console.WriteLine($"Package {packageName} not found in {source.Name}");
+                    Console.WriteLine($"{_redLine}Package {packageName} not found in {source.Name}");
                     continue;
                 }
-                Console.WriteLine($"Package {targetPack.Title} found in {targetPack.Identity.Version.OriginalVersion}");
-                Console.WriteLine($"Download start.....");
+                Console.WriteLine($"{_redLine}Package {targetPack.Title} found in {targetPack.Identity.Version.OriginalVersion}");
+                Console.WriteLine($"{_redLine}Download start.....");
                 SourceRepository repository = Repository.Factory.GetCoreV3(source.URL);
                 FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>();
                 using MemoryStream packageStream = new MemoryStream();
 
+                var packVer = packageVersion ?? targetPack.Identity.Version.OriginalVersion;
                 var ans = await resource.CopyNupkgToStreamAsync(
                     packageName,
-                    new NuGetVersion(packageVersion),
+                    new NuGetVersion(packVer),
                     packageStream,
                     cache,
                     _logger,
                     _cancellationToken);
                 if (!ans)
                 {
-                    Console.WriteLine("Something happened during file upload...");
+                    Console.WriteLine("{_redLine}Something happened during file upload...");
                     continue;
                 }
-                FileStream file = new FileStream("d:\\file.txt", FileMode.Create, FileAccess.Write);
+
+                var fullPathToSave = Path.Combine(_folderForSavePacks, $"{packageName}.{packVer}.nupkg");
+                FileStream file = new FileStream(fullPathToSave, FileMode.Create, FileAccess.Write);
                 packageStream.WriteTo(file);
                 file.Close();
-                Console.WriteLine($"Downloaded package {packageName} {packageVersion}");
+                Console.WriteLine($"{_redLine}Downloaded package {packageName} {packVer}");
+
+                targetPack.DependencySets.ToList().ForEach(a =>
+                {
+                    a.Packages.ToList().ForEach(s =>
+                    {
+                        Console.WriteLine($"{_redLine}{s.Id} {s.VersionRange}");
+                        _redLine.Insert(0, "| ");
+                        FindAndDownload(s.Id, sources, cache, s.VersionRange.MinVersion.OriginalVersion).Wait();
+                        _redLine.Remove(0, 2);
+                    });
+                });
+
+                return;
             }
-        }
-
-        private async Task<bool> DownloadPack(string packName, string packVer, NugetSource source, SourceCacheContext cache, MemoryStream packageStream)
-        {
-            SourceRepository repository = Repository.Factory.GetCoreV3(source.URL);
-            FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>();
-
-            var asn = await resource.CopyNupkgToStreamAsync(
-                packName,
-                new NuGetVersion(packVer),
-                packageStream,
-                cache,
-                _logger,
-                _cancellationToken);
-
-            if(!asn)
-            {
-                Console.WriteLine($"{_redLine}Not found in {source.Name}");
-                return false;
-            }
-
-            Console.WriteLine($"Downloaded package {packName} {packVer}");
-            return true;
         }
 
         public async Task FindAllPackageDependencies(string packageName, List<NugetSource> sources, string packageVersion = null)
@@ -169,7 +161,7 @@ namespace NuGetPacksCLI.Managers
                 return;
             }
 
-            foundedPackages = foundedPackages.Distinct().OrderByDescending(x=>x.Identity.Version).ToList();
+            foundedPackages = foundedPackages.Distinct().ToList();
 
             var package = packageVersion == null ? 
                         foundedPackages?.First()
