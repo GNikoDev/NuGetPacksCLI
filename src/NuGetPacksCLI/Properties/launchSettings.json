@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NugetCoreManager": {
+      "commandName": "Project",
+      "commandLineArgs": "packs depends -n ASE.MD.Platform.Infrastructure.TFlex.Client"
+    }
+  }
+}
