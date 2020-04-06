@@ -22,11 +22,13 @@ namespace NuGetPacksCLI.Commands
         Description = "Work with NuGet packages")]
     public class Packages
     {
-        private readonly IOptionsSnapshot<NugetManagerOptions> _opt;
+        private readonly IOptionsSnapshot<RepositoryOptions> _repoOpt;
+        private readonly IOptions<DownloadOptions> _downOpt;
 
-        public Packages(IOptionsSnapshot<NugetManagerOptions> opt)
+        public Packages(IOptionsSnapshot<RepositoryOptions> repoOpt, IOptions<DownloadOptions> downOpt)
         {
-            _opt = opt;
+            _repoOpt = repoOpt;
+            _downOpt = downOpt;
         }
 
         [Command(Name = "vers",
@@ -34,7 +36,7 @@ namespace NuGetPacksCLI.Commands
             Description = "List available versions for target package")]
         public async Task ListAllPackVersions([Option(LongName = "name", ShortName = "n", Description = "Package name")] string packName)
         {
-            var availableSources = _opt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
+            var availableSources = _repoOpt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
             if (!availableSources.Any())
             {
                 Console.WriteLine("Source list is empty");
@@ -57,7 +59,7 @@ namespace NuGetPacksCLI.Commands
             Description = "List add dependencies of package")]
         public async Task GetPackageMeta([Option(LongName = "name", ShortName = "n", Description = "Package name")] string packName)
         {
-            var availableSources = _opt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
+            var availableSources = _repoOpt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
             if (!availableSources.Any())
             {
                 Console.WriteLine("Source list is empty");
@@ -78,7 +80,7 @@ namespace NuGetPacksCLI.Commands
         public async Task FindPackagesByPartOfName(
             [Option(LongName = "part", ShortName = "p", Description = "Part of name")] string partOnName)
         {
-            var availableSources = _opt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
+            var availableSources = _repoOpt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
             if (!availableSources.Any())
             {
                 Console.WriteLine("Source list is empty");
@@ -105,7 +107,7 @@ namespace NuGetPacksCLI.Commands
             [Option(LongName = "version", ShortName = "v", Description = "Package version")]
             string packVersion = null)
         {
-            var availableSources = _opt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
+            var availableSources = _repoOpt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
             if (!availableSources.Any())
             {
                 Console.WriteLine("Source list is empty");
@@ -116,9 +118,9 @@ namespace NuGetPacksCLI.Commands
             CancellationToken cancellationToken = new CancellationToken();
 
             Console.WriteLine($"Start downloading \"{packName}\" package dependencies...\n");
-            if (!Directory.Exists(_opt.Value.DownloadFolder))
-                Directory.CreateDirectory(_opt.Value.DownloadFolder);
-            var manager = new PackageManager(logger, cancellationToken, _opt.Value.DownloadFolder);
+            if (!Directory.Exists(_downOpt.Value.DownloadFolder))
+                Directory.CreateDirectory(_downOpt.Value.DownloadFolder);
+            var manager = new PackageManager(logger, cancellationToken, _downOpt.Value.DownloadFolder);
             manager.DownloadPackAndAllDependencies(packName, availableSources, packVersion).Wait();
         }
 
@@ -127,7 +129,7 @@ namespace NuGetPacksCLI.Commands
             Description = "Download add dependencies for all packages in selected list")]
         public async Task DownloadPacksAndDependenciesFromList(List<string> packageNames)
         {
-            var availableSources = _opt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
+            var availableSources = _repoOpt.Value.NugetSources.Where(it => it.IsEnabled).ToList();
             if (!availableSources.Any())
             {
                 Console.WriteLine("Source list is empty");
@@ -142,9 +144,9 @@ namespace NuGetPacksCLI.Commands
             foreach (var packageName in packageNames)
             {
                 Console.WriteLine($"Start downloading \"{packageName}\" package dependencies...\n");
-                if (!Directory.Exists(_opt.Value.DownloadFolder))
-                    Directory.CreateDirectory(_opt.Value.DownloadFolder);
-                var manager = new PackageManager(logger, cancellationToken, _opt.Value.DownloadFolder);
+                if (!Directory.Exists(_downOpt.Value.DownloadFolder))
+                    Directory.CreateDirectory(_downOpt.Value.DownloadFolder);
+                var manager = new PackageManager(logger, cancellationToken, _downOpt.Value.DownloadFolder);
                 manager.DownloadPackAndAllDependencies(packageName, availableSources).Wait();
             }
         }

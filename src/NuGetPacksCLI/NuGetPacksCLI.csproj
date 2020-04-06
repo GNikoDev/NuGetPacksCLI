@@ -8,12 +8,13 @@
     <Configurations>Debug;Release</Configurations>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>ncm</ToolCommandName>
-    <PackageOutputPath>./nupkg</PackageOutputPath>
-    <Version>0.2.1.0</Version>
-    <AssemblyVersion>0.2.1.0</AssemblyVersion>
-    <FileVersion>0.2.1.0</FileVersion>
-    <PackageVersion>0.2.1.0</PackageVersion>
-    <StartupObject>NuGetPacksCLI.Program</StartupObject>
+    <PackageOutputPath>.\nupkg\$(Configuration)</PackageOutputPath>
+    <Version>0.2.3</Version>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <FileVersion>$(Version)</FileVersion>
+    <PackageVersion>$(Version)</PackageVersion>
+    <StartupObject></StartupObject>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
   </PropertyGroup>
 
@@ -37,5 +38,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <Target Name="CopyPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Debug'">
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\nupkg\$(Configuration)\$(PackageId).$(PackageVersion).nupkg" DestinationFolder="C:\LocalNugetStore" />
+  </Target>
 
 </Project>
