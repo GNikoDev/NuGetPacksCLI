@@ -19,6 +19,6 @@ namespace NuGetPacksCLI.Services
         public Packages Packages { get; set; }
 
         [SubCommand()]
-        public Sources Sources { get; set; }
+        public Settings Settings { get; set; }
     }
 }
