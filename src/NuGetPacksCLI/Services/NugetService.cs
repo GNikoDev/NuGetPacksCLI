@@ -8,9 +8,9 @@ namespace NuGetPacksCLI.Services
     [Command]
     public class NugetService
     {
-        private readonly IOptionsSnapshot<NugetManagerOptions> _opt;
+        private readonly IOptionsSnapshot<RepositoryOptions> _opt;
 
-        public NugetService(IOptionsSnapshot<NugetManagerOptions> opt)
+        public NugetService(IOptionsSnapshot<RepositoryOptions> opt)
         {
             _opt = opt;
         }

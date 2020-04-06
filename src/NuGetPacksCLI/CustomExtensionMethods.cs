@@ -11,7 +11,7 @@ namespace NuGetPacksCLI
     {
         public static IServiceCollection AddCustomOptions(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<NugetManagerOptions>(configuration);
+            services.Configure<RepositoryOptions>(configuration);
 
             return services;
         }

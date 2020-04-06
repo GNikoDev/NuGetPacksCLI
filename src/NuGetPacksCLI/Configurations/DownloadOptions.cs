@@ -1,11 +1,11 @@
+﻿using System;
 using System.Collections.Generic;
-using NuGetPacksCLI.Models;
+using System.Text;
 
 namespace NuGetPacksCLI.Configurations
 {
-    public class NugetManagerOptions
+    public class DownloadOptions
     {
-        public List<NugetSource> NugetSources { get; set; }
         public string DownloadFolder { get; set; }
     }
 }

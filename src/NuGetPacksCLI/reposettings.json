@@ -1,0 +1,9 @@
+﻿{
+  "NugetSources": [
+    {
+      "Name": "NuGetOrg",
+      "URL": "https://api.nuget.org/v3/index.json",
+      "IsEnabled": true
+    }
+  ]
+}
