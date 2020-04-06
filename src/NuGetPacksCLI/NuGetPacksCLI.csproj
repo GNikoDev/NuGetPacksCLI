@@ -3,16 +3,21 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <AssemblyName>NuGetPacksCLI</AssemblyName>
-    <Description>Application for analisys and downloading nuget packs from several resources</Description>
     <Configurations>Debug;Release</Configurations>
-    <PackAsTool>true</PackAsTool>
-    <ToolCommandName>ncm</ToolCommandName>
-    <PackageOutputPath>.\nupkg\$(Configuration)</PackageOutputPath>
+    <AssemblyName>NuGetPacksCLI</AssemblyName>
+    <Authors>NickDevLive</Authors>
+    <Company>MadDevelop</Company>
+    <RepositoryUrl>https://github.com/NickDevLive/NuGetPacksCLI</RepositoryUrl>
+    <Description>Application for analisys and downloading nuget packs from several resources</Description>
     <Version>0.2.3</Version>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(Version)</FileVersion>
     <PackageVersion>$(Version)</PackageVersion>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>ncm</ToolCommandName>
+    <PackageOutputPath>.\nupkg\$(Configuration)</PackageOutputPath>
+    
+    
     <StartupObject></StartupObject>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
