@@ -2,7 +2,7 @@
   "profiles": {
     "NugetCoreManager": {
       "commandName": "Project",
-      "commandLineArgs": "packs save -n ASE.MD.Platform.Infrastructure.TFlex.Client "
+      "commandLineArgs": "sources list"
     }
   }
 }
