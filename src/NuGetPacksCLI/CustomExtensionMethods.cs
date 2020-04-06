@@ -12,6 +12,7 @@ namespace NuGetPacksCLI
         public static IServiceCollection AddCustomOptions(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<RepositoryOptions>(configuration);
+            services.Configure<DownloadOptions>(configuration);
 
             return services;
         }
@@ -23,6 +24,7 @@ namespace NuGetPacksCLI
             services.AddTransient<NugetService>();
             services.AddTransient<Packages>();
             services.AddTransient<Sources>();
+            services.AddTransient<SavePath>();
 
             return services;
         }

@@ -2,7 +2,7 @@
   "profiles": {
     "NugetCoreManager": {
       "commandName": "Project",
-      "commandLineArgs": "sources list"
+      "commandLineArgs": "settings savepath"
     }
   }
 }
